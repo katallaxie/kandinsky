@@ -1,0 +1,11 @@
+
+# dist
+bin
+pkg
+kandinsky
+
+debug
+
+# test
+*.out
+coverage.html
