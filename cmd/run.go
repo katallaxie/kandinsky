@@ -28,7 +28,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	// create relay
 	r := relay.New(
-		cfg.Addr,
+		cfg.Relay,
 		relay.WithAddr(cfg.Addr),
 		relay.WithLog(root.logger),
 	)

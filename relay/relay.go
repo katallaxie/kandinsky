@@ -2,7 +2,8 @@ package relay
 
 import (
 	"context"
-	"fmt"
+	"io"
+	"net"
 	"net/http"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 
 	ws "github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
 var _ server.Listener = (*relay)(nil)
@@ -70,21 +72,76 @@ func WithAddr(addr string) func(o *Opts) {
 
 var upgrader = ws.Upgrader{}
 
-func relayHandler(addr string, relay string) http.Handler {
+func relayHandler(ll *log.Entry, addr string, relay string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		conn, err := upgrader.Upgrade(w, r, nil)
+		conn, err := net.Dial("tcp", relay)
 		if err != nil {
+			ll.Error(err)
+
 			return
 		}
 		defer conn.Close()
+
+		// upgrade connection from http to tcp
+		c, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			ll.Error(err)
+
+			return
+		}
+		defer c.Close()
+
+		g, ctx := errgroup.WithContext(r.Context())
+
+		g.Go(readMessages(ctx, ll, c, conn))
+		g.Go(writeMessages(ctx, ll, c, conn))
+
+		time.Sleep(5 * time.Second)
+
+		if err := g.Wait(); err != nil {
+			// todo: log error
+			ll.Error(err)
+		}
+
+		return
 	})
 }
 
+func writeMessages(ctx context.Context, ll *log.Entry, w *ws.Conn, conn net.Conn) func() error {
+	return func() error {
+		for {
+			writer, err := w.NextWriter(ws.BinaryMessage)
+			if err != nil {
+				return err
+			}
+
+			io.Copy(writer, conn)
+		}
+	}
+}
+
+func readMessages(ctx context.Context, ll *log.Entry, w *ws.Conn, conn net.Conn) func() error {
+	return func() error {
+		for {
+			// todo: check message type
+			_, msg, err := w.NextReader()
+			if err != nil {
+				if ws.IsUnexpectedCloseError(err, ws.CloseGoingAway, ws.CloseAbnormalClosure) {
+					return err
+				}
+
+				return err
+			}
+
+			io.Copy(conn, msg)
+		}
+	}
+}
+
 func configureHandler(r *relay) error {
-	fmt.Println(r.addr)
 	r.http = &http.Server{
 		Addr:    r.addr,
-		Handler: relayHandler(r.addr, r.relay),
+		Handler: relayHandler(r.log, r.addr, r.relay),
 	}
 
 	return nil
