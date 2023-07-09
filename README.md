@@ -1,8 +1,10 @@
 # Kandinsky
 
+![Github Action](https://github.com/katallaxie/kandinsky/workflows/main/badge.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/katallaxie/kandinsky.svg)](https://pkg.go.dev/github.com/katallaxie/kandinsky)
+[![Go Report Card](https://goreportcard.com/badge/github.com/katallaxie/kandinsky)](https://goreportcard.com/report/github.com/katallaxie/kandinsky)
 [![Taylor Swift](https://img.shields.io/badge/secured%20by-taylor%20swift-brightgreen.svg)](https://twitter.com/SwiftOnSecurity)
 [![Volkswagen](https://auchenberg.github.io/volkswagen/volkswargen_ci.svg?v=1)](https://github.com/auchenberg/volkswagen)
-[![Build Status](https://travis-ci.org/andersnormal/kandinsky.svg?branch=master)](https://travis-ci.org/andersnormal/kandinsky)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 

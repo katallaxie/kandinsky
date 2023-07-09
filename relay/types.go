@@ -3,7 +3,7 @@ package relay
 import (
 	"net/http"
 
-	"github.com/andersnormal/pkg/server"
+	"github.com/katallaxie/pkg/server"
 
 	log "github.com/sirupsen/logrus"
 )

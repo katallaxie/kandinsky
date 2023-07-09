@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/andersnormal/pkg/server"
+	"github.com/katallaxie/pkg/server"
 
 	ws "github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -31,7 +31,7 @@ func New(addr string, opts ...Opt) Relay {
 }
 
 // Start ...
-func (r *relay) Start(ctx context.Context) func() error {
+func (r *relay) Start(ctx context.Context, ready server.ReadyFunc, run server.RunFunc) func() error {
 	return func() error {
 		// todo: support TLS
 		if err := r.http.ListenAndServe(); err != nil {

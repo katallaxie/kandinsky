@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	c "github.com/andersnormal/kandinsky/config"
+	c "github.com/katallaxie/kandinsky/config"
 
 	"github.com/spf13/cobra"
 )

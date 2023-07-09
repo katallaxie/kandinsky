@@ -1,25 +1,49 @@
-build:
-  binary: kandinsky
-  main: main.go
-  goos:
-    - windows
-    - darwin
-    - linux
-  goarch:
-    - 386
-    - amd64
-  ignore:
-    - goos: darwin
-      goarch: 386
-  env:
-    - CGO_ENABLED=0
+project_name: kandinsky
 
-archive:
-  name_template: "{{.Binary}}_{{.Os}}_{{.Arch}}"
+builds:
+   -
+    id: main
+    binary: main-{{.Os}}-{{ .Arch }}
+    main: main.go
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - 386
+      - amd64
+      - arm
+      - arm64
+    ignore:
+        - goos: darwin
+          goarch: 386
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+        - -s -w
+    no_unique_dist_dir: true
 
-  format_overrides:
-    - goos: windows
-      format: zip
+archives:
+  -
+    id: main
+    builds:
+      - main
+    name_template: "main_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+dockers:
+  -
+    dockerfile: Dockerfile
+    goos: linux
+    goarch: amd64
+    ids:
+      - main
+    image_templates:
+      - "ghcr.io/katallaxie/{{.ProjectName}}:latest"
+      - "ghcr.io/katallaxie/{{.ProjectName}}:{{ .Tag }}"
+      - "ghcr.io/katallaxie/{{.ProjectName}}"
+
+gomod:
+  proxy: true
 
 release:
   draft: true
@@ -28,17 +52,4 @@ snapshot:
   name_template: "{{.Tag}}"
 
 checksum:
-  name_template: "task_checksums.txt"
-
-nfpm:
-  vendor: Picasso
-  homepage: https://github.com/andersnormal/kandinsky
-  maintainer: Sebastian Döll <sebastian@andersnormal.us>
-  description: A relay between WebSocket protocol and TCP services
-  license: Apache 2.0
-  conflicts:
-    - taskwarrior
-  formats:
-    - deb
-    - rpm
-  name_template: "{{.ProjectName}}_{{.Os}}_{{.Arch}}"
+  name_template: "main_checksums.txt"

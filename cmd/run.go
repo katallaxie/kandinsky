@@ -3,8 +3,8 @@ package cmd
 import (
 	"context"
 
-	"github.com/andersnormal/kandinsky/relay"
-	"github.com/andersnormal/pkg/server"
+	"github.com/katallaxie/kandinsky/relay"
+	"github.com/katallaxie/pkg/server"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	defer cancel()
 
 	// create server
-	s := server.NewServer(ctx)
+	s, _ := server.WithContext(ctx)
 
 	// create relay
 	r := relay.New(
@@ -32,7 +32,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		relay.WithAddr(cfg.Addr),
 		relay.WithLog(root.logger),
 	)
-	s.Listen(r)
+	s.Listen(r, false)
 
 	// listen for the server and wait for it to fail,
 	// or for sys interrupts

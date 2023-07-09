@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/andersnormal/kandinsky/config"
+	"github.com/katallaxie/kandinsky/config"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
