@@ -76,7 +76,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// listen for the server and wait for it to fail,
 	// or for sys interrupts
 	if err := s.Wait(); err != nil {
-		root.logger.Error(err)
+		return err
 	}
 
 	// noop

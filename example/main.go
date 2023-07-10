@@ -19,6 +19,7 @@ var (
 	svc  = flag.String("sv", "localhost:4222", "service addr")
 )
 
+// nolint:gocyclo
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
@@ -47,7 +48,7 @@ func main() {
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Fatal("dial:", err)
+		log.Panic("dial:", err)
 	}
 	defer c.Close()
 
@@ -109,7 +110,7 @@ func handleConnection(c net.Conn) {
 
 		log.Println("recv:", string(buf))
 
-		_, err = bufio.NewWriter(c).Write([]byte("got it"))
+		_, err = bufio.NewWriter(c).WriteString("got it")
 		if err != nil {
 			fmt.Println(err)
 			return

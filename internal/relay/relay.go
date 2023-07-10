@@ -14,6 +14,31 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// Opt ...
+type Opt func(*Opts)
+
+// Opts ...
+type Opts struct {
+	Logger *log.Entry
+	Relay  string
+	Addr   string
+}
+
+type Relay interface {
+	server.Listener
+}
+
+type relay struct {
+	http *http.Server
+
+	relay string
+	addr  string
+
+	log *log.Entry
+
+	opts *Opts
+}
+
 var _ server.Listener = (*relay)(nil)
 
 // New ...
@@ -72,7 +97,7 @@ func WithAddr(addr string) func(o *Opts) {
 
 var upgrader = ws.Upgrader{}
 
-func relayHandler(ll *log.Entry, addr string, relay string) http.Handler {
+func relayHandler(ll *log.Entry, relay string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		conn, err := net.Dial("tcp", relay)
 		if err != nil {
@@ -91,10 +116,10 @@ func relayHandler(ll *log.Entry, addr string, relay string) http.Handler {
 		}
 		defer c.Close()
 
-		g, ctx := errgroup.WithContext(r.Context())
+		g, _ := errgroup.WithContext(r.Context())
 
-		g.Go(readMessages(ctx, ll, c, conn))
-		g.Go(writeMessages(ctx, ll, c, conn))
+		g.Go(readMessages(c, conn))
+		g.Go(writeMessages(c, conn))
 
 		time.Sleep(5 * time.Second)
 
@@ -102,14 +127,13 @@ func relayHandler(ll *log.Entry, addr string, relay string) http.Handler {
 			// todo: log error
 			ll.Error(err)
 		}
-
-		return
 	})
 }
 
-func writeMessages(ctx context.Context, ll *log.Entry, w *ws.Conn, conn net.Conn) func() error {
+func writeMessages(w *ws.Conn, conn net.Conn) func() error {
 	return func() error {
 		for {
+
 			writer, err := w.NextWriter(ws.BinaryMessage)
 			if err != nil {
 				return err
@@ -120,7 +144,7 @@ func writeMessages(ctx context.Context, ll *log.Entry, w *ws.Conn, conn net.Conn
 	}
 }
 
-func readMessages(ctx context.Context, ll *log.Entry, w *ws.Conn, conn net.Conn) func() error {
+func readMessages(w *ws.Conn, conn net.Conn) func() error {
 	return func() error {
 		for {
 			// todo: check message type
@@ -138,22 +162,19 @@ func readMessages(ctx context.Context, ll *log.Entry, w *ws.Conn, conn net.Conn)
 	}
 }
 
-func configureHandler(r *relay) error {
+func configureHandler(r *relay) {
 	r.http = &http.Server{
-		Addr:    r.addr,
-		Handler: relayHandler(r.log, r.addr, r.relay),
+		Addr:              r.addr,
+		Handler:           relayHandler(r.log, r.relay),
+		ReadHeaderTimeout: 2 * time.Second,
 	}
-
-	return nil
 }
 
-func configure(r *relay, opts ...Opt) error {
+func configure(r *relay, opts ...Opt) {
 	for _, o := range opts {
 		o(r.opts)
 	}
 
 	r.log = r.opts.Logger
 	r.addr = r.opts.Addr
-
-	return nil
 }
