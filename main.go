@@ -1,9 +1,13 @@
 package main
 
 import (
-	"github.com/katallaxie/kandinsky/cmd"
+	"log"
+
+	"github.com/katallaxie/kandinsky/internal/cmd"
 )
 
 func main() {
-	cmd.Execute()
+	if err := cmd.RootCmd.Execute(); err != nil {
+		log.Fatal(err)
+	}
 }
