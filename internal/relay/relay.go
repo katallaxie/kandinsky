@@ -47,7 +47,6 @@ func New(addr string, opts ...Opt) Relay {
 
 	r := new(relay)
 	r.opts = options
-	r.relay = addr
 
 	configure(r, opts...)
 	configureHandler(r)
@@ -165,7 +164,7 @@ func readMessages(w *ws.Conn, conn net.Conn) func() error {
 func configureHandler(r *relay) {
 	r.http = &http.Server{
 		Addr:              r.addr,
-		Handler:           relayHandler(r.log, r.relay),
+		Handler:           relayHandler(r.log, r.opts.Addr),
 		ReadHeaderTimeout: 2 * time.Second,
 	}
 }
